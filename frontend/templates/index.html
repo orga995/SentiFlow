@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EVENT HORIZON | FINAL</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.7.0/vanilla-tilt.min.js"></script>
+    
+    <style>
+        :root {
+            --void: #050505;
+            --accent: #00f3ff;
+            --danger: #ff0055;
+            --gold: #ffd700;
+            --glass: rgba(20, 30, 40, 0.6);
+        }
+
+        body {
+            margin: 0; overflow-x: hidden; background: var(--void); color: white;
+            font-family: 'Rajdhani', sans-serif;
+        }
+
+        /* מסך אתחול (חובה לסאונד) */
+        #init-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: black; z-index: 9999; display: flex;
+            justify-content: center; align-items: center; flex-direction: column;
+            cursor: pointer;
+        }
+        .press-start {
+            font-family: 'Orbitron'; font-size: 2rem; letter-spacing: 5px;
+            animation: pulse-text 1s infinite;
+        }
+        @keyframes pulse-text { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+
+        /* קנבס חלל */
+        #universe { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
+        
+        .interface-layer { position: relative; z-index: 10; height: 100vh; overflow-y: auto; overflow-x: hidden; }
+
+        /* לוגו */
+        .mega-logo {
+            font-family: 'Orbitron'; font-size: 4rem; font-weight: 900; letter-spacing: 15px;
+            background: linear-gradient(to bottom, #fff, var(--accent));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 20px var(--accent));
+        }
+
+        /* פאנלים */
+        .glass-panel {
+            background: var(--glass); backdrop-filter: blur(15px);
+            border: 1px solid rgba(0, 243, 255, 0.3); border-radius: 15px;
+            padding: 40px; box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            transition: 0.3s;
+        }
+        .glass-panel:hover { border-color: var(--accent); box-shadow: 0 0 40px rgba(0, 243, 255, 0.2); }
+
+        /* קלט */
+        .stellar-input {
+            background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white;
+            width: 100%; padding: 20px; font-size: 1.2rem; font-family: 'Rajdhani';
+            outline: none; border-radius: 8px; transition: 0.3s;
+        }
+        .stellar-input:focus { border-color: var(--accent); box-shadow: 0 0 20px rgba(0, 243, 255, 0.1); }
+
+        /* כפתור */
+        .btn-gravity {
+            background: var(--accent); color: black; border: none; width: 100%; padding: 20px;
+            font-family: 'Orbitron'; font-weight: 900; letter-spacing: 5px; cursor: pointer;
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+            transition: 0.3s;
+        }
+        .btn-gravity:hover { background: white; box-shadow: 0 0 50px var(--accent); letter-spacing: 8px; }
+
+        /* מיקרופון */
+        .mic-trigger {
+            position: absolute; top: -25px; right: 25px; width: 60px; height: 60px;
+            background: black; border: 2px solid var(--accent); border-radius: 50%;
+            display: flex; justify-content: center; align-items: center; color: var(--accent);
+            cursor: pointer; transition: 0.3s; font-size: 1.5rem;
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.2);
+        }
+        .mic-trigger:hover { transform: scale(1.1); box-shadow: 0 0 40px var(--accent); }
+        .mic-active { animation: pulse-red 0.8s infinite; border-color: var(--danger); color: var(--danger); }
+        @keyframes pulse-red { 0% { box-shadow: 0 0 0 var(--danger); } 50% { box-shadow: 0 0 30px var(--danger); } 100% { box-shadow: 0 0 0 var(--danger); } }
+
+        /* --- תיקון מיקום המספר (הכי חשוב) --- */
+        .chart-wrapper {
+            position: relative;
+            height: 250px; width: 250px;
+            margin: 0 auto;
+        }
+        .core-number-container {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            text-align: center; z-index: 100; pointer-events: none; width: 100%;
+        }
+        .stat-val {
+            font-family: 'Orbitron'; font-size: 3.5rem; font-weight: 900; color: white;
+            line-height: 1; margin-bottom: 5px;
+            text-shadow: 0 0 20px rgba(0, 243, 255, 0.5), 2px 2px 0 #000;
+        }
+        .stat-label {
+            font-family: 'Rajdhani'; letter-spacing: 3px; font-weight: bold; font-size: 0.9rem; opacity: 0.8;
+        }
+
+        /* סכומים */
+        .score-box {
+            background: rgba(0,0,0,0.3); border-radius: 10px; padding: 15px;
+            border: 1px solid rgba(255,255,255,0.05); text-align: center; height: 100%;
+        }
+        .impact-score { font-family: 'Orbitron'; font-size: 2rem; font-weight: 700; margin-top: 5px; }
+
+        /* אנימציה */
+        .warp-in { animation: warp 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; opacity: 0; transform: scale(0.8); }
+        @keyframes warp { to { opacity: 1; transform: scale(1); } }
+    </style>
+</head>
+<body>
+
+    <div id="init-overlay" onclick="initSystem()">
+        <div class="press-start">[ INITIALIZE SYSTEM ]</div>
+        <div class="mt-3 text-muted small">CLICK TO ENABLE AUDIO & VISUALS</div>
+    </div>
+
+    <canvas id="universe"></canvas>
+
+    <div class="interface-layer container py-5">
+        
+        <div class="text-center mb-5">
+            <h1 class="mega-logo">EVENT HORIZON</h1>
+            <p style="letter-spacing: 5px; color: var(--accent);">MK-IV // SENTIMENT CORE</p>
+        </div>
+
+        <div class="row justify-content-center mb-5">
+            <div class="col-lg-8">
+                <div class="glass-panel" data-tilt>
+                    <div class="mic-trigger" onclick="toggleMic()" title="Voice Link">
+                        <i class="bi bi-mic-fill"></i>
+                    </div>
+                    
+                    <h5 class="mb-4 text-white-50">// DATA INPUT STREAM</h5>
+                    <form method="POST" onsubmit="playProcessSound()">
+                        <textarea id="bulk_text" name="bulk_text" class="stellar-input mb-4" rows="3" 
+                            placeholder="Separate distinct reviews with an EMPTY LINE (Double Enter)..." required></textarea>
+                        <button type="submit" class="btn-gravity">ENGAGE ANALYSIS</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        {% if report %}
+        <div class="row g-4 warp-in">
+            
+            <div class="col-lg-4">
+                <div class="glass-panel h-100 d-flex flex-column justify-content-center align-items-center">
+                    <h5 class="mb-4 text-accent text-center w-100">SENTIMENT CORE</h5>
+                    
+                    <div class="chart-wrapper">
+                        <canvas id="horizonChart"></canvas>
+                        <div class="core-number-container">
+                            <div class="stat-val">{{ report.total_reviews }}</div>
+                            <div class="stat-label">REVIEWS</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-8">
+                <div class="glass-panel h-100">
+                    
+                    <div class="row mb-4">
+                        <div class="col-6">
+                            <div class="score-box">
+                                <div class="text-accent small mb-1">TOTAL POSITIVE</div>
+                                <div class="impact-score text-accent">+{{ report.total_positive_score }}</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="score-box">
+                                <div class="text-danger small mb-1">TOTAL NEGATIVE</div>
+                                <div class="impact-score text-danger">{{ report.total_negative_score }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 border-end border-secondary">
+                            <h6 class="text-white-50 mb-3">> HIGHLIGHTS</h6>
+                            {% for item in report.pros %}
+                            <div class="mb-2 p-2 bg-dark bg-opacity-50 border-start border-info border-3 d-flex justify-content-between">
+                                <span class="text-truncate small w-75">{{ item.original }}</span>
+                                <span class="fw-bold text-accent small">+{{ item.score }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-white-50 mb-3">> ISSUES</h6>
+                            {% for item in report.cons %}
+                            <div class="mb-2 p-2 bg-dark bg-opacity-50 border-start border-danger border-3 d-flex justify-content-between">
+                                <span class="text-truncate small w-75">{{ item.original }}</span>
+                                <span class="fw-bold text-danger small">{{ item.score }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12">
+                <div class="glass-panel" style="border-color: var(--gold); box-shadow: 0 0 30px rgba(255, 215, 0, 0.1);">
+                    <h5 class="mb-4" style="color: var(--gold);">
+                        <i class="bi bi-lightbulb-fill me-2"></i> OPTIMIZATION LOG
+                    </h5>
+                    <div class="row">
+                        {% set suggestions_found = false %}
+                        {% for item in report.all_reviews %}
+                            {% if item.suggestion %}
+                            {% set suggestions_found = true %}
+                            <div class="col-md-6 mb-3">
+                                <div class="p-3 border border-warning rounded bg-dark bg-opacity-50 position-relative h-100">
+                                    <span class="badge bg-warning text-dark position-absolute top-0 start-0 translate-middle">Action Item</span>
+                                    <div class="small text-white-50 mb-2 fst-italic">"{{ item.original[:60] }}..."</div>
+                                    <div class="text-warning fw-bold small">
+                                        <i class="bi bi-arrow-return-right me-2"></i> {{ item.suggestion }}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if not suggestions_found %}
+                        <div class="col-12 text-muted small fst-italic">No specific actionable suggestions detected in this batch.</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <script>
+            // גרף דונאט
+            const ctx = document.getElementById('horizonChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Positive', 'Negative'],
+                    datasets: [{
+                        data: [{{ report.total_positive_score }}, Math.abs({{ report.total_negative_score }})],
+                        backgroundColor: ['rgba(0, 243, 255, 0.8)', 'rgba(255, 0, 85, 0.8)'],
+                        borderColor: 'transparent',
+                        borderWidth: 0,
+                        hoverOffset: 5
+                    }]
+                },
+                options: { 
+                    cutout: '85%', 
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } } 
+                }
+            });
+
+            // הפעלת סאונד בטעינה (אם אושר)
+            window.addEventListener('load', () => {
+                if (sessionStorage.getItem('audioInit') === 'true') {
+                    document.getElementById('init-overlay').style.display = 'none';
+                    setTimeout(() => speak("Analysis complete. Visualizing data."), 500);
+                }
+            });
+        </script>
+        {% endif %}
+
+    </div>
+
+    <script>
+        // --- מערכת דיבור ---
+        const synth = window.speechSynthesis;
+        function speak(text) {
+            if (synth.speaking) synth.cancel();
+            const u = new SpeechSynthesisUtterance(text);
+            u.rate = 0.9; u.pitch = 0.7;
+            const voices = synth.getVoices();
+            const v = voices.find(v => v.name.includes('Google US English')) || voices[0];
+            if(v) u.voice = v;
+            synth.speak(u);
+        }
+
+        // אתחול
+        function initSystem() {
+            const overlay = document.getElementById('init-overlay');
+            overlay.style.opacity = '0';
+            setTimeout(() => overlay.style.display = 'none', 500);
+            speak("System Online.");
+            sessionStorage.setItem('audioInit', 'true');
+        }
+
+        function playProcessSound() { speak("Processing data."); }
+
+        // מיקרופון
+        function toggleMic() {
+            if (!('webkitSpeechRecognition' in window)) return alert("Use Chrome");
+            const r = new webkitSpeechRecognition();
+            const btn = document.querySelector('.mic-trigger');
+            btn.classList.add('mic-active');
+            speak("Listening.");
+            
+            r.lang = 'en-US'; r.start();
+            r.onresult = (e) => {
+                document.getElementById('bulk_text').value += e.results[0][0].transcript + ".\n\n";
+                speak("Received.");
+                btn.classList.remove('mic-active');
+            };
+            r.onerror = () => btn.classList.remove('mic-active');
+        }
+
+        // --- חלקיקים (Three.js) ---
+        const canvas = document.getElementById('universe');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({canvas: canvas, alpha: true});
+        renderer.setSize(window.innerWidth, window.innerHeight);
+
+        const geo = new THREE.BufferGeometry();
+        const cnt = 6000;
+        const pos = new Float32Array(cnt*3);
+        for(let i=0; i<cnt*3; i++) pos[i] = (Math.random()-0.5)*40;
+        geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+        const mat = new THREE.PointsMaterial({size: 0.04, color: 0x00f3ff, transparent: true, opacity: 0.8});
+        const mesh = new THREE.Points(geo, mat);
+        scene.add(mesh);
+        camera.position.z = 5;
+
+        let mouseX=0, mouseY=0;
+        document.addEventListener('mousemove', e => {
+            mouseX = (e.clientX - window.innerWidth/2) * 0.0005;
+            mouseY = (e.clientY - window.innerHeight/2) * 0.0005;
+        });
+
+        function animate() {
+            requestAnimationFrame(animate);
+            mesh.rotation.y += 0.001;
+            mesh.rotation.x += (mouseY - mesh.rotation.x) * 0.05;
+            mesh.rotation.y += (mouseX - mesh.rotation.y) * 0.05;
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth/window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        VanillaTilt.init(document.querySelectorAll(".glass-panel"), { max: 5, speed: 400, glare: true, "max-glare": 0.1 });
+    </script>
+</body>
+</html>

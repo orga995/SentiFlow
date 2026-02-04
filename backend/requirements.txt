@@ -1,0 +1,7 @@
+flask
+flask-sqlalchemy
+psycopg2-binary
+textblob
+deep-translator
+pandas
+openpyxl

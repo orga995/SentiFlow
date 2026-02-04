@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  # 1. המוח (Backend)
+  backend:
+    build: ./backend
+    ports:
+      - "5000:5000"
+    environment:
+      # חיבור ל-DB החדש שלנו
+      - DATABASE_URL=postgresql://user:password@db:5432/sentiflow_db
+    depends_on:
+      - db
+    networks:
+      - sentiflow-net
+
+  # 2. הפנים (Frontend)
+  frontend:
+    build: ./frontend
+    ports:
+      - "5001:5001"
+    environment:
+      - BACKEND_URL=http://backend:5000
+    depends_on:
+      - backend
+    networks:
+      - sentiflow-net
+
+  # 3. הזיכרון (Database) - הרכיב החדש!
+  db:
+    image: postgres:13
+    restart: always
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: sentiflow_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - sentiflow-net
+
+# נפח אחסון כדי שהמידע לא יימחק כשמכבים את הדוקר
+volumes:
+  postgres_data:
+
+networks:
+  sentiflow-net:
+    driver: bridge
