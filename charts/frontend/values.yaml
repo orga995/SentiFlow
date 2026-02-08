@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: sentiflow-frontend
+  repository: orga995/sentiflow-frontend
   pullPolicy: IfNotPresent
   tag: "latest"
 
