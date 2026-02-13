@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sentiflow-frontend
+spec:
+  replicas: {{ .Values.frontend.replicaCount }}
+  selector:
+    matchLabels:
+      app: sentiflow-frontend
+  template:
+    metadata:
+      labels:
+        app: sentiflow-frontend
+    spec:
+      containers:
+      - name: frontend
+        image: "{{ .Values.global.ecr.repository }}/{{ .Values.frontend.image.name }}:{{ .Values.frontend.image.tag }}"
+        env:
+            - name: BACKEND_URL
+              value: "http://sentiflow-backend:5000"
+        ports:
+        - containerPort: 5001
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sentiflow-frontend
+spec:
+  selector:
+    app: sentiflow-frontend
+  ports:
+    - protocol: TCP
+      port: 5001
+      targetPort: 5001

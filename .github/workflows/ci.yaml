@@ -1,4 +1,4 @@
-name: SentiFlow CI
+name: SentiFlow CI/CD
 
 on:
   push:
@@ -8,52 +8,44 @@ on:
 
 env:
   AWS_REGION: us-east-1
-  ECR_REPO_BACKEND: sentiflow-backend
-  ECR_REPO_FRONTEND: sentiflow-frontend
+  ECR_REPOSITORY_FRONTEND: sentiflow-frontend
+  ECR_REPOSITORY_BACKEND: sentiflow-backend
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
 
     - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v2
+      uses: aws-actions/configure-aws-credentials@v1
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        # אין צורך ב-Session Token כי יש לך מפתח קבוע (AKIA)
         aws-region: ${{ env.AWS_REGION }}
 
     - name: Login to Amazon ECR
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
 
-    - name: Create ECR Repositories if missing
-      run: |
-        aws ecr describe-repositories --repository-names ${{ env.ECR_REPO_BACKEND }} || aws ecr create-repository --repository-name ${{ env.ECR_REPO_BACKEND }}
-        aws ecr describe-repositories --repository-names ${{ env.ECR_REPO_FRONTEND }} || aws ecr create-repository --repository-name ${{ env.ECR_REPO_FRONTEND }}
-
-    - name: Build & Push Backend
+    - name: Build, tag, and push Frontend image to Amazon ECR
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         IMAGE_TAG: ${{ github.sha }}
       run: |
-        cd backend
-        docker build -t $ECR_REGISTRY/$ECR_REPO_BACKEND:$IMAGE_TAG .
-        docker push $ECR_REGISTRY/$ECR_REPO_BACKEND:$IMAGE_TAG
-        docker tag $ECR_REGISTRY/$ECR_REPO_BACKEND:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPO_BACKEND:latest
-        docker push $ECR_REGISTRY/$ECR_REPO_BACKEND:latest
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_FRONTEND:$IMAGE_TAG ./frontend
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY_FRONTEND:$IMAGE_TAG
+        docker tag $ECR_REGISTRY/$ECR_REPOSITORY_FRONTEND:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY_FRONTEND:latest
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY_FRONTEND:latest
 
-    - name: Build & Push Frontend
+    - name: Build, tag, and push Backend image to Amazon ECR
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         IMAGE_TAG: ${{ github.sha }}
       run: |
-        cd frontend
-        docker build -t $ECR_REGISTRY/$ECR_REPO_FRONTEND:$IMAGE_TAG .
-        docker push $ECR_REGISTRY/$ECR_REPO_FRONTEND:$IMAGE_TAG
-        docker tag $ECR_REGISTRY/$ECR_REPO_FRONTEND:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPO_FRONTEND:latest
-        docker push $ECR_REGISTRY/$ECR_REPO_FRONTEND:latest
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_BACKEND:$IMAGE_TAG ./backend
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY_BACKEND:$IMAGE_TAG
+        docker tag $ECR_REGISTRY/$ECR_REPOSITORY_BACKEND:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY_BACKEND:latest
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY_BACKEND:latest
