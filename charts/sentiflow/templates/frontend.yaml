@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: sentiflow-frontend
 spec:
-  replicas: {{ .Values.frontend.replicaCount }}
+  replicas: 1
   selector:
     matchLabels:
       app: sentiflow-frontend
@@ -14,10 +14,10 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: "{{ .Values.global.ecr.repository }}/{{ .Values.frontend.image.name }}:{{ .Values.frontend.image.tag }}"
+        image: "525127693154.dkr.ecr.us-east-1.amazonaws.com/sentiflow-frontend:latest"
         env:
-            - name: BACKEND_URL
-              value: "http://sentiflow-backend:5000"
+          - name: BACKEND_URL
+            value: "http://sentiflow-backend:5000"
         ports:
         - containerPort: 5001
 ---
