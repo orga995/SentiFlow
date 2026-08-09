@@ -1,0 +1,137 @@
+[
+    {
+        "IpProtocol": "tcp",
+        "FromPort": 6443,
+        "ToPort": 6443,
+        "UserIdGroupPairs": [
+            {
+                "Description": "Cluster API to node 6443/tcp webhook",
+                "UserId": "525127693154",
+                "GroupId": "sg-0f621dd85e104215a"
+            }
+        ],
+        "IpRanges": [],
+        "Ipv6Ranges": [],
+        "PrefixListIds": []
+    },
+    {
+        "IpProtocol": "tcp",
+        "FromPort": 9443,
+        "ToPort": 9443,
+        "UserIdGroupPairs": [
+            {
+                "Description": "Cluster API to node 9443/tcp webhook",
+                "UserId": "525127693154",
+                "GroupId": "sg-0f621dd85e104215a"
+            }
+        ],
+        "IpRanges": [],
+        "Ipv6Ranges": [],
+        "PrefixListIds": []
+    },
+    {
+        "IpProtocol": "tcp",
+        "FromPort": 1025,
+        "ToPort": 65535,
+        "UserIdGroupPairs": [
+            {
+                "Description": "Node to node ingress on ephemeral ports",
+                "UserId": "525127693154",
+                "GroupId": "sg-0fb02d6f2a1378b6c"
+            }
+        ],
+        "IpRanges": [],
+        "Ipv6Ranges": [],
+        "PrefixListIds": []
+    },
+    {
+        "IpProtocol": "tcp",
+        "FromPort": 8443,
+        "ToPort": 8443,
+        "UserIdGroupPairs": [
+            {
+                "Description": "Cluster API to node 8443/tcp webhook",
+                "UserId": "525127693154",
+                "GroupId": "sg-0f621dd85e104215a"
+            }
+        ],
+        "IpRanges": [],
+        "Ipv6Ranges": [],
+        "PrefixListIds": []
+    },
+    {
+        "IpProtocol": "tcp",
+        "FromPort": 10250,
+        "ToPort": 10250,
+        "UserIdGroupPairs": [
+            {
+                "Description": "Cluster API to node kubelets",
+                "UserId": "525127693154",
+                "GroupId": "sg-0f621dd85e104215a"
+            }
+        ],
+        "IpRanges": [],
+        "Ipv6Ranges": [],
+        "PrefixListIds": []
+    },
+    {
+        "IpProtocol": "udp",
+        "FromPort": 53,
+        "ToPort": 53,
+        "UserIdGroupPairs": [
+            {
+                "Description": "Node to node CoreDNS UDP",
+                "UserId": "525127693154",
+                "GroupId": "sg-0fb02d6f2a1378b6c"
+            }
+        ],
+        "IpRanges": [],
+        "Ipv6Ranges": [],
+        "PrefixListIds": []
+    },
+    {
+        "IpProtocol": "tcp",
+        "FromPort": 53,
+        "ToPort": 53,
+        "UserIdGroupPairs": [
+            {
+                "Description": "Node to node CoreDNS",
+                "UserId": "525127693154",
+                "GroupId": "sg-0fb02d6f2a1378b6c"
+            }
+        ],
+        "IpRanges": [],
+        "Ipv6Ranges": [],
+        "PrefixListIds": []
+    },
+    {
+        "IpProtocol": "tcp",
+        "FromPort": 4443,
+        "ToPort": 4443,
+        "UserIdGroupPairs": [
+            {
+                "Description": "Cluster API to node 4443/tcp webhook",
+                "UserId": "525127693154",
+                "GroupId": "sg-0f621dd85e104215a"
+            }
+        ],
+        "IpRanges": [],
+        "Ipv6Ranges": [],
+        "PrefixListIds": []
+    },
+    {
+        "IpProtocol": "tcp",
+        "FromPort": 443,
+        "ToPort": 443,
+        "UserIdGroupPairs": [
+            {
+                "Description": "Cluster API to node groups",
+                "UserId": "525127693154",
+                "GroupId": "sg-0f621dd85e104215a"
+            }
+        ],
+        "IpRanges": [],
+        "Ipv6Ranges": [],
+        "PrefixListIds": []
+    }
+]
