@@ -2,6 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: sentiflow-frontend
+  labels:
+    app: sentiflow-frontend
 spec:
   replicas: 1
   selector:
@@ -13,22 +15,8 @@ spec:
         app: sentiflow-frontend
     spec:
       containers:
-      - name: frontend
-        image: "525127693154.dkr.ecr.us-east-1.amazonaws.com/sentiflow-frontend:latest"
-        env:
-          - name: BACKEND_URL
-            value: "http://sentiflow-backend:5000"
+      - name: sentiflow-frontend
+        image: 525127693154.dkr.ecr.us-east-1.amazonaws.com/sentiflow-frontend:latest
+        imagePullPolicy: IfNotPresent
         ports:
-        - containerPort: 5001
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: sentiflow-frontend
-spec:
-  selector:
-    app: sentiflow-frontend
-  ports:
-    - protocol: TCP
-      port: 5001
-      targetPort: 5001
+        - containerPort: 80
